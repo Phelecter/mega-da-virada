@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mega da Virada</title>
+
+  <!-- Manifesto PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#007b55">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg, #006400, #FFD700);
+      color: white;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding-top: 40px;
+    }
+    h1 {
+      margin-bottom: 15px;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+    }
+    button {
+      border: none;
+      color: #333;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: bold;
+    }
+    .gerar { background-color: #FFD700; }
+    .gerar:hover { background-color: #ffeb3b; }
+    .limpar { background-color: #ff5555; color: white; }
+    .limpar:hover { background-color: #ff7777; }
+    .baixar { background-color: #00ff88; }
+    .baixar:hover { background-color: #55ffaa; }
+    #numeros {
+      margin-top: 25px;
+      font-size: 24px;
+      letter-spacing: 6px;
+      font-weight: bold;
+      text-shadow: 1px 1px 3px black;
+    }
+    #historico {
+      margin-top: 30px;
+      width: 85%;
+      max-width: 400px;
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      padding: 15px;
+      text-align: left;
+      overflow-y: auto;
+      max-height: 300px;
+    }
+    #historico h2 { text-align: center; margin-top: 0; }
+    .jogo {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 5px 0;
+      font-size: 18px;
+    }
+    .botoes {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    #quantidade {
+      width: 70px;
+      padding: 5px;
+      border-radius: 6px;
+      border: none;
+      text-align: center;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎰 Mega da Virada 🎰</h1>
+
+  <div>
+    <label for="quantidade">Gerar quantos jogos?</label>
+    <input type="number" id="quantidade" min="1" max="50" value="1">
+  </div>
+
+  <div class="botoes">
+    <button class="gerar" onclick="gerarNumeros()">Gerar</button>
+    <button class="limpar" onclick="limparHistorico()">Limpar</button>
+    <button class="baixar" onclick="baixarHistorico()">Baixar</button>
+  </div>
+
+  <div id="numeros">Clique para gerar seus jogos!</div>
+
+  <div id="historico">
+    <h2>Histórico de Jogos</h2>
+    <div id="listaHistorico"></div>
+  </div>
+
+  <script>
+    let contador = 0;
+    let historico = [];
+
+    window.onload = () => {
+      const salvo = localStorage.getItem("historicoMega");
+      const salvoContador = localStorage.getItem("contadorMega");
+      if (salvo) {
+        historico = JSON.parse(salvo);
+        contador = parseInt(salvoContador) || historico.length;
+        atualizarHistorico();
+      }
+    };
+
+    function gerarNumeros() {
+      const qtd = parseInt(document.getElementById("quantidade").value);
+      if (isNaN(qtd) || qtd < 1) {
+        alert("Digite uma quantidade válida de jogos!");
+        return;
+      }
+
+      let ultimosJogos = [];
+
+      for (let i = 0; i < qtd; i++) {
+        const numeros = [];
+        while (numeros.length < 6) {
+          const n = Math.floor(Math.random() * 60) + 1;
+          if (!numeros.includes(n)) numeros.push(n);
+        }
+        numeros.sort((a, b) => a - b);
+
+        contador++;
+        const jogo = `Jogo ${contador}: ${numeros.join(" - ")}`;
+        historico.unshift(jogo);
+        ultimosJogos.push(jogo);
+      }
+
+      document.getElementById("numeros").innerHTML = ultimosJogos.join("<br>");
+      atualizarHistorico();
+      salvarLocalmente();
+    }
+
+    function atualizarHistorico() {
+      const lista = document.getElementById("listaHistorico");
+      lista.innerHTML = historico.map(j => `<div class="jogo">${j}</div>`).join("");
+    }
+
+    function salvarLocalmente() {
+      localStorage.setItem("historicoMega", JSON.stringify(historico));
+      localStorage.setItem("contadorMega", contador);
+    }
+
+    function limparHistorico() {
+      if (confirm("Tem certeza que deseja limpar o histórico?")) {
+        historico = [];
+        contador = 0;
+        localStorage.removeItem("historicoMega");
+        localStorage.removeItem("contadorMega");
+        document.getElementById("listaHistorico").innerHTML = "";
+        document.getElementById("numeros").textContent = "Clique para gerar seus jogos!";
+      }
+    }
+
+    function baixarHistorico() {
+      if (historico.length === 0) {
+        alert("Não há jogos no histórico para baixar!");
+        return;
+      }
+      const conteudo = historico.slice().reverse().join("\n");
+      const blob = new Blob([conteudo], { type: "text/plain;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "meus_jogos_mega_da_virada.txt";
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker registrado com sucesso!'))
+        .catch(err => console.log('Erro ao registrar Service Worker:', err));
+    }
+  </script>
+</body>
+</html>

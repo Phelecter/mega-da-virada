@@ -1,0 +1,22 @@
+{
+    "name": "Mega da Virada",
+    "short_name": "MegaVirada",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#006400",
+    "theme_color": "#FFD700",
+    "orientation": "portrait",
+    "icons": [
+      {
+        "src": "https://cdn-icons-png.flaticon.com/512/284/284460.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "https://cdn-icons-png.flaticon.com/512/284/284460.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }
+  
