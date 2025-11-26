@@ -189,6 +189,51 @@
         .then(() => console.log('Service Worker registrado com sucesso!'))
         .catch(err => console.log('Erro ao registrar Service Worker:', err));
     }
+    
+  async function baixarPDF() {
+    if (historico.length === 0) {
+      alert("Não há jogos no histórico para gerar PDF!");
+      return;
+    }
+
+    // Captura a data e hora do momento
+    const agora = new Date();
+    const dataFormatada = agora.toLocaleDateString("pt-BR");
+    const horaFormatada = agora.toLocaleTimeString("pt-BR");
+
+    // Carrega jsPDF
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+
+    let y = 10;
+
+    // Título do PDF
+    pdf.setFontSize(18);
+    pdf.text("Relatório - Mega da Virada", 10, y);
+    y += 10;
+
+    // Data e Hora
+    pdf.setFontSize(12);
+    pdf.text(`Gerado em: ${dataFormatada} às ${horaFormatada}`, 10, y);
+    y += 15;
+
+    // Conteúdo do histórico
+    pdf.setFontSize(14);
+    historico.slice().reverse().forEach((linha, i) => {
+      if (y > 280) {      // Quebra de página
+        pdf.addPage();
+        y = 10;
+      }
+      pdf.text(linha, 10, y);
+      y += 8;
+    });
+
+    // Nome do arquivo com data/hora
+    const nomeArquivo = `mega_da_virada_${agora.getFullYear()}-${agora.getMonth()+1}-${agora.getDate()}_${agora.getHours()}-${agora.getMinutes()}.pdf`;
+
+    // Download
+    pdf.save(nomeArquivo);
+  }
   </script>
 </body>
 </html>
